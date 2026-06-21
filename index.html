@@ -1123,6 +1123,23 @@ textarea{resize:vertical;min-height:64px;}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
+// Inicializar Firebase inmediatamente
+var _fbConfig = {
+  apiKey:"AIzaSyCW1jR4NvnrJ1wGJ2jml-z-jr2yWNdB1L8",
+  authDomain:"medistock-19ebd.firebaseapp.com",
+  projectId:"medistock-19ebd",
+  storageBucket:"medistock-19ebd.firebasestorage.app",
+  messagingSenderId:"534975006893",
+  appId:"1:534975006893:web:09f44e4ca12c1123175e24"
+};
+if(!firebase.apps.length){ firebase.initializeApp(_fbConfig); }
+var db = firebase.firestore();
+window.db = db;
+window._fbReady = true;
+console.log('Firebase inicializado OK');
+</script>
+
+<script>
 
 // ══ FUNCIONES DE FECHA (deben estar antes que savePac) ══
 function maskDate(el){
@@ -1158,15 +1175,13 @@ window.T = window.T || function(msg, dur){
   if(t){t.textContent=msg;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',dur||3200);}
   else alert(msg);
 };
-firebase.initializeApp({
-  apiKey:"AIzaSyCW1jR4NvnrJ1wGJ2jml-z-jr2yWNdB1L8",
-  authDomain:"medistock-19ebd.firebaseapp.com",
-  projectId:"medistock-19ebd",
-  storageBucket:"medistock-19ebd.firebasestorage.app",
-  messagingSenderId:"534975006893",
-  appId:"1:534975006893:web:09f44e4ca12c1123175e24"
-});
-const db = firebase.firestore();
+// Firebase ya inicializado arriba
+// db disponible como window.db
+if(!window.db){ 
+  if(!firebase.apps.length){ firebase.initializeApp({apiKey:"AIzaSyCW1jR4NvnrJ1wGJ2jml-z-jr2yWNdB1L8",authDomain:"medistock-19ebd.firebaseapp.com",projectId:"medistock-19ebd",storageBucket:"medistock-19ebd.firebasestorage.app",messagingSenderId:"534975006893",appId:"1:534975006893:web:09f44e4ca12c1123175e24"}); }
+  window.db = firebase.firestore();
+}
+const db = window.db;
 
 // Compatibilidad con API modular
 const collection = (db, col) => db.collection(col);
@@ -2120,7 +2135,32 @@ async function loadRecetas(id){
 window.imprimirReceta=(meds,pac,fecha,indicaciones)=>{
   const lista=meds.map(m=>`<tr><td>${m.med}</td><td>${m.dosis}</td><td>${m.frec}</td><td>${m.dur}</td></tr>`).join('');
   const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Receta</title><style>body{font-family:Arial,sans-serif;padding:30px;max-width:600px;margin:0 auto;}h2{color:#1A3C5E;}table{width:100%;border-collapse:collapse;margin:15px 0;}th,td{border:1px solid #ddd;padding:8px;font-size:13px;}th{background:#1A3C5E;color:white;}.footer{margin-top:40px;border-top:1px solid #ddd;padding-top:15px;font-size:11px;color:#888;}</style></head><body><div style="text-align:center;margin-bottom:20px;"><h2>🏥 Clínica Médica Santa Fe</h2><div style="font-size:12px;color:#666;">Receta Médica</div></div><p><strong>Paciente:</strong> ${pac}</p><p><strong>Fecha:</strong> ${fmtFecha(fecha)}</p><table><thead><tr><th>Medicamento</th><th>Dosis</th><th>Frecuencia</th><th>Duración</th></tr></thead><tbody>${lista}</tbody></table>${indicaciones?`<p><strong>Indicaciones:</strong> ${indicaciones}</p>`:''}<div style="margin-top:50px;text-align:right;"><div style="display:inline-block;border-top:1px solid #333;padding-top:8px;width:200px;text-align:center;font-size:12px;">Firma del médico</div></div><div class="footer">Clínica Médica Santa Fe · Documento generado digitalmente</div></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Receta</title><style>body{font-family:Arial,sans-serif;padding:30px;max-width:600px;margin:0 auto;}h2{color:#1A3C5E;}table{width:100%;border-collapse:collapse;margin:15px 0;}th,td{border:1px solid #ddd;padding:8px;font-size:13px;}th{background:#1A3C5E;color:white;}.footer{margin-top:40px;border-top:1px solid #ddd;padding-top:15px;font-size:11px;color:#888;}</style></head><body><div style="text-align:center;margin-bottom:20px;"><h2>🏥 Clínica Médica Santa Fe</h2><div style="font-size:12px;color:#666;">Receta Médica</div></div><p><strong>Paciente:</strong> ${pac}</p><p><strong>Fecha:</strong> ${fmtFecha(fecha)}</p><table><thead><tr><th>Medicamento</th><th>Dosis</th><th>Frecuencia</th><th>Duración</th></tr></thead><tbody>${lista}</tbody></table>${indicaciones?`<p><strong>Indicaciones:</strong> ${indicaciones}</p>`:''}<div style="margin-top:50px;text-align:right;"><div style="display:inline-block;border-top:1px solid #333;padding-top:8px;width:200px;text-align:center;font-size:12px;">Firma del médico</div></div><div class="footer">Clínica Médica Santa Fe · Documento generado digitalmente</div>
+<button onclick="testFirebase()" style="position:fixed;bottom:10px;right:10px;z-index:9999;background:#E24B4A;color:white;border:none;padding:10px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;">🔥 Test Firebase</button>
+<script>
+function testFirebase(){
+  var msgs = [];
+  msgs.push('1. Firebase cargado: ' + (typeof firebase !== 'undefined' ? '✅ SÍ' : '❌ NO'));
+  if(typeof firebase !== 'undefined'){
+    msgs.push('2. Firestore: ' + (typeof firebase.firestore !== 'undefined' ? '✅ SÍ' : '❌ NO'));
+    try{
+      var db2 = firebase.firestore();
+      msgs.push('3. DB conectado: ✅ SÍ');
+      db2.collection('test').add({test:true, ts: new Date().toISOString()})
+        .then(function(ref){ alert(msgs.join('\n') + '\n4. Escritura: ✅ FUNCIONÓ! ID: ' + ref.id); })
+        .catch(function(e){ alert(msgs.join('\n') + '\n4. Escritura: ❌ ERROR: ' + e.message); });
+    }catch(e){
+      msgs.push('3. DB error: ❌ ' + e.message);
+      alert(msgs.join('\n'));
+    }
+  } else {
+    msgs.push('Firebase no cargó - revisar conexión a internet');
+    alert(msgs.join('\n'));
+  }
+}
+</script>
+
+</body></html>`);
   w.print();
 };
 
@@ -2182,7 +2222,32 @@ window.descargarConsentimiento=()=>{
   const p=curPacId?allPacs.find(x=>x.id===curPacId):null;
   const firma=firmaCanvas?firmaCanvas.toDataURL():'';
   const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Consentimiento</title><style>body{font-family:Arial,sans-serif;padding:30px;max-width:700px;margin:0 auto;}.header{text-align:center;margin-bottom:24px;}.logo{font-size:24px;font-weight:bold;color:#1A3C5E;}.tipo{background:#E6F1FB;border-radius:8px;padding:10px 15px;font-size:14px;font-weight:bold;color:#0C447C;margin-bottom:16px;}.texto{font-size:13px;line-height:1.8;border:1px solid #ddd;border-radius:8px;padding:16px;min-height:120px;}.firma-area{margin-top:30px;display:flex;justify-content:space-between;align-items:flex-end;}.firma-img{border-top:2px solid #333;padding-top:8px;text-align:center;font-size:12px;}</style></head><body><div class="header"><div class="logo">🏥 CLÍNICA MÉDICA SANTA FE</div><div style="font-size:12px;color:#666;margin-top:4px;">Consentimiento Informado</div></div><div class="tipo">${tipo}</div><p><strong>Paciente:</strong> ${p?p.nombre:'_______________'} &nbsp;&nbsp;<strong>Fecha:</strong> ${new Date().toLocaleDateString('es-HN')}</p><div class="texto">${texto}</div><div class="firma-area"><div style="flex:1;"><div class="firma-img"><img src="${firma}" style="max-width:200px;max-height:80px;" onerror="this.style.display='none'"/><br/>Firma del paciente</div></div><div style="flex:1;text-align:right;"><div class="firma-img"><br/><br/><br/>Firma del médico</div></div></div></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Consentimiento</title><style>body{font-family:Arial,sans-serif;padding:30px;max-width:700px;margin:0 auto;}.header{text-align:center;margin-bottom:24px;}.logo{font-size:24px;font-weight:bold;color:#1A3C5E;}.tipo{background:#E6F1FB;border-radius:8px;padding:10px 15px;font-size:14px;font-weight:bold;color:#0C447C;margin-bottom:16px;}.texto{font-size:13px;line-height:1.8;border:1px solid #ddd;border-radius:8px;padding:16px;min-height:120px;}.firma-area{margin-top:30px;display:flex;justify-content:space-between;align-items:flex-end;}.firma-img{border-top:2px solid #333;padding-top:8px;text-align:center;font-size:12px;}</style></head><body><div class="header"><div class="logo">🏥 CLÍNICA MÉDICA SANTA FE</div><div style="font-size:12px;color:#666;margin-top:4px;">Consentimiento Informado</div></div><div class="tipo">${tipo}</div><p><strong>Paciente:</strong> ${p?p.nombre:'_______________'} &nbsp;&nbsp;<strong>Fecha:</strong> ${new Date().toLocaleDateString('es-HN')}</p><div class="texto">${texto}</div><div class="firma-area"><div style="flex:1;"><div class="firma-img"><img src="${firma}" style="max-width:200px;max-height:80px;" onerror="this.style.display='none'"/><br/>Firma del paciente</div></div><div style="flex:1;text-align:right;"><div class="firma-img"><br/><br/><br/>Firma del médico</div></div></div>
+<button onclick="testFirebase()" style="position:fixed;bottom:10px;right:10px;z-index:9999;background:#E24B4A;color:white;border:none;padding:10px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;">🔥 Test Firebase</button>
+<script>
+function testFirebase(){
+  var msgs = [];
+  msgs.push('1. Firebase cargado: ' + (typeof firebase !== 'undefined' ? '✅ SÍ' : '❌ NO'));
+  if(typeof firebase !== 'undefined'){
+    msgs.push('2. Firestore: ' + (typeof firebase.firestore !== 'undefined' ? '✅ SÍ' : '❌ NO'));
+    try{
+      var db2 = firebase.firestore();
+      msgs.push('3. DB conectado: ✅ SÍ');
+      db2.collection('test').add({test:true, ts: new Date().toISOString()})
+        .then(function(ref){ alert(msgs.join('\n') + '\n4. Escritura: ✅ FUNCIONÓ! ID: ' + ref.id); })
+        .catch(function(e){ alert(msgs.join('\n') + '\n4. Escritura: ❌ ERROR: ' + e.message); });
+    }catch(e){
+      msgs.push('3. DB error: ❌ ' + e.message);
+      alert(msgs.join('\n'));
+    }
+  } else {
+    msgs.push('Firebase no cargó - revisar conexión a internet');
+    alert(msgs.join('\n'));
+  }
+}
+</script>
+
+</body></html>`);
   w.print();
 };
 
@@ -2281,6 +2346,31 @@ window.descargarExpediente=async()=>{
 <h2>Signos Vitales</h2>
 <table><thead><tr><th>Fecha</th><th>Peso/Talla</th><th>IMC</th><th>Presión</th><th>Temp.</th><th>SpO₂</th></tr></thead><tbody>${svHTML||'<tr><td colspan="6">Sin registros</td></tr>'}</tbody></table>
 <div style="margin-top:30px;font-size:10px;color:#999;text-align:center;">Impreso: ${new Date().toLocaleString('es-HN')} · Clínica Médica Santa Fe</div>
+
+<button onclick="testFirebase()" style="position:fixed;bottom:10px;right:10px;z-index:9999;background:#E24B4A;color:white;border:none;padding:10px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;">🔥 Test Firebase</button>
+<script>
+function testFirebase(){
+  var msgs = [];
+  msgs.push('1. Firebase cargado: ' + (typeof firebase !== 'undefined' ? '✅ SÍ' : '❌ NO'));
+  if(typeof firebase !== 'undefined'){
+    msgs.push('2. Firestore: ' + (typeof firebase.firestore !== 'undefined' ? '✅ SÍ' : '❌ NO'));
+    try{
+      var db2 = firebase.firestore();
+      msgs.push('3. DB conectado: ✅ SÍ');
+      db2.collection('test').add({test:true, ts: new Date().toISOString()})
+        .then(function(ref){ alert(msgs.join('\n') + '\n4. Escritura: ✅ FUNCIONÓ! ID: ' + ref.id); })
+        .catch(function(e){ alert(msgs.join('\n') + '\n4. Escritura: ❌ ERROR: ' + e.message); });
+    }catch(e){
+      msgs.push('3. DB error: ❌ ' + e.message);
+      alert(msgs.join('\n'));
+    }
+  } else {
+    msgs.push('Firebase no cargó - revisar conexión a internet');
+    alert(msgs.join('\n'));
+  }
+}
+</script>
+
 </body></html>`);
   w.print();
   T('📥 Expediente descargado');
@@ -2634,105 +2724,4 @@ function expTab(id){
   const t=document.getElementById(id);
   if(t){t.style.display='flex';t.style.flexDirection='column';}
   document.querySelectorAll('.exp-tab').forEach(b=>{
-    b.classList.toggle('on',(b.getAttribute('onclick')||'').includes("'"+id+"'"));
-  });
-  if(id==='eGraf'&&window.curPacId)window._loadGrafSignos&&window._loadGrafSignos(window.curPacId);
-  if(id==='eFotos'&&window.curPacId)window.loadFotosExp&&window.loadFotosExp(window.curPacId);
-  if(id==='eConsen'&&window.curPacId)window.loadConsentimientos&&window.loadConsentimientos(window.curPacId);
-}
-function gTab(n){
-  [1,2,3].forEach(i=>{
-    const gc=document.getElementById('gc'+i);
-    const gt=document.getElementById('gtab'+i);
-    if(gc)gc.style.display=i===n?'block':'none';
-    if(gt)gt.classList.toggle('on',i===n);
-  });
-  if(window.buildGChart)window.buildGChart(n);
-}
-function toggleSection(id){
-  const el=document.getElementById(id);
-  if(!el)return;
-  el.style.display=el.style.display==='none'?'flex':'none';
-  if(el.style.display==='flex')el.style.flexDirection='column';
-}
-
-async function testYGuardar(){
-  // Test 1: ¿Existe window.savePac?
-  if(!window.savePac){
-    alert('ERROR: savePac no está cargada. Firebase módulo no cargó.');
-    return;
-  }
-  // Test 2: ¿Hay nombre?
-  const n1=document.getElementById('pn1');
-  if(!n1||!n1.value.trim()){
-    alert('Falta nombre. Ve al paso General y escribe el nombre.');
-    if(window.pstep)window.pstep(1);
-    return;
-  }
-  // Test 3: Llamar savePac
-  try{
-    await window.savePac();
-  }catch(e){
-    alert('ERROR al guardar: '+e.message);
-    console.error(e);
-  }
-}
-window.testYGuardar=testYGuardar;
-
-
-function enviarAlertaWA(wa, pac){
-  if(!wa){alert('Sin WhatsApp registrado');return;}
-  window.open('https://wa.me/'+wa.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent('Hola *'+pac+'*, le esperamos en Clínica Santa Fe para su cita de hoy 🏥'));
-}
-window.enviarAlertaWA=enviarAlertaWA;
-window.pstep=pstep;
-window.cstep=cstep;
-window.expTab=expTab;
-window.gTab=gTab;
-window.toggleSection=toggleSection;
-
-// ── Aliases para funciones del módulo Firebase ──
-// Se asignan cuando el módulo termina de cargar
-// Los onclick HTML esperan funciones globales
-['savePac','verPac','delPac','filterPac',
- 'openNuevaConsulta','saveConsulta','cRxAdd',
- 'openNuevaReceta','saveReceta','rxAdd',
- 'openSignos','saveSignos',
- 'saveNota',
- 'saveCita','filterMeds','recetarMed',
- 'cotAdd','cotWA','saveCot','cotNueva','updCot',
- 'fAdd','fAddMedStock','abrirFact','pagarFact','anularFact','saveFact',
- 'genReport',
- 'saveEspera','llamarPac','atenderPac','tomarCita','cerrarCita',
- 'saveHosp','abrirConsumo','consAdd','saveConsumo','descargarConsumo','darAlta','notifHospWA',
- 'saveConsentimiento','descargarConsentimiento','limpiarFirma',
- 'subirFotosExp','verFotoFull','eliminarFoto',
- 'enviarRecetaWA','enviarRecetaCorreo','imprimirReceta',
- 'descargarHistorial','descargarRecetas','descargarSignos','descargarExpediente',
- 'reenvCot','abrirGraficas','loadAgenda','tomarCita','cerrarCita',
- 'marcarPagada'
-].forEach(fn=>{
-  if(!window[fn]){
-    window[fn]=(...args)=>{
-      console.warn('Función',fn,'aún no cargada');
-      setTimeout(()=>{if(window[fn])window[fn](...args);},500);
-    };
-  }
-});
-var _dc=null;
-function buildDashChart(){
-  if(_dc)return;
-  _dc=new Chart(document.getElementById('dashChart'),{type:'bar',data:{labels:['1','3','5','7','9','11','13','15','17','19'],datasets:[{label:'Consultas',data:[12,15,11,14,18,10,16,13,17,12],backgroundColor:'#2E7DB8',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},color:'#888'},grid:{display:false}},y:{ticks:{font:{size:9},color:'#888'},grid:{color:'rgba(0,0,0,0.04)'}}}}});
-}
-// Pre-carga datos para cita desde expediente
-window._citPacPre='';window._factPacPre='';
-window.om=om;
-// Parchar apertura de cita con pre-carga
-const _origMCita=window.om;
-document.getElementById('mCita').addEventListener('transitionend',()=>{
-  if(window._citPacPre){document.getElementById('citPac').value=window._citPacPre;window._citPacPre='';}
-  if(window._citWAPre){document.getElementById('citWA').value=window._citWAPre;window._citWAPre='';}
-});
-</script>
-</body>
-</html>
+    b.classList.toggle('on',(b.getAttribute('onclick')||'').includes("'"
