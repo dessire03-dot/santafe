@@ -2751,24 +2751,64 @@ function toggleSection(id){
 }
 
 async function testYGuardar(){
-  // Test 1: ¿Existe window.savePac?
-  if(!window.savePac){
-    alert('ERROR: savePac no está cargada. Firebase módulo no cargó.');
-    return;
-  }
-  // Test 2: ¿Hay nombre?
   const n1=document.getElementById('pn1');
-  if(!n1||!n1.value.trim()){
-    alert('Falta nombre. Ve al paso General y escribe el nombre.');
-    if(window.pstep)window.pstep(1);
+  const a1=document.getElementById('pa1');
+  const nombre=(n1&&n1.value.trim())||'';
+  const apellido=(a1&&a1.value.trim())||'';
+  if(!nombre||!apellido){
+    alert('Por favor completa: Primer nombre y Primer apellido en el paso General.\n\nNombre actual: "'+nombre+'"\nApellido actual: "'+apellido+'"');
     return;
   }
-  // Test 3: Llamar savePac
+  T('⏳ Guardando paciente...');
   try{
-    await window.savePac();
+    const wa=(document.getElementById('pwa').value.trim()||'').replace(/[^0-9]/g,'');
+    await addDoc(collection(db,'pacientes'),{
+      nombre:[nombre,
+        (document.getElementById('pn2').value.trim()||''),
+        apellido,
+        (document.getElementById('pa2').value.trim()||'')
+      ].filter(Boolean).join(' '),
+      nombre1:nombre,
+      nombre2:(document.getElementById('pn2').value.trim()||''),
+      apellido1:apellido,
+      apellido2:(document.getElementById('pa2').value.trim()||''),
+      tipoDoc:document.getElementById('ptd').value,
+      dni:(document.getElementById('pdni').value.trim()||''),
+      nacimiento:dmyToIso(document.getElementById('pnac').value||''),
+      sexo:document.getElementById('psex').value,
+      estadoCivil:document.getElementById('pec').value,
+      sangre:document.getElementById('psg').value,
+      wa:wa?'504'+wa:'',
+      email:(document.getElementById('pem').value.trim()||''),
+      alergias:(document.getElementById('pal').value.trim()||''),
+      pais:'Honduras',
+      ciudad:(document.getElementById('pcity').value.trim()||''),
+      departamento:(document.getElementById('pdpto').value.trim()||''),
+      municipio:(document.getElementById('pmun').value.trim()||''),
+      direccion:(document.getElementById('pdir').value.trim()||''),
+      ocupacion:(document.getElementById('poc').value.trim()||''),
+      nacionalidad:'Hondureña',
+      aseguradora:document.getElementById('pase').value,
+      poliza:(document.getElementById('ppol').value.trim()||''),
+      regimen:document.getElementById('preg').value,
+      emergencia:(document.getElementById('perg').value.trim()||''),
+      obs:(document.getElementById('pobs').value.trim()||''),
+      foto:window._foto||null,
+      creadoEn:serverTimestamp()
+    });
+    // Limpiar
+    ['pn1','pn2','pa1','pa2','pdni','pnac','pwa','pem','pal','pcity','pdpto','pmun','pdir','poc','ppol','perg','pobs']
+      .forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    const fp=document.getElementById('fotoPreview');
+    if(fp)fp.innerHTML='<i class="ti ti-camera" style="font-size:28px;color:var(--pl);"></i>';
+    window._foto=null;
+    pstep(1);
+    cm('mPac');
+    T('✅ Paciente guardado correctamente');
+    alert('✅ ¡Paciente guardado exitosamente!');
   }catch(e){
-    alert('ERROR al guardar: '+e.message);
-    console.error(e);
+    console.error('Error guardando:',e);
+    alert('❌ Error al guardar: '+e.message);
   }
 }
 window.testYGuardar=testYGuardar;
