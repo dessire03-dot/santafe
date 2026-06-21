@@ -227,7 +227,7 @@ textarea{resize:vertical;min-height:64px;}
     <div><div class="fl">Observaciones</div><textarea id="pobs" style="min-height:52px;"></textarea></div>
     <div style="display:flex;gap:8px;">
       <button class="btn bsc" onclick="pstep(2)"><i class="ti ti-arrow-left"></i> Anterior</button>
-      <button class="btn bac bfw" onclick="testYGuardar()"><i class="ti ti-device-floppy"></i> Guardar paciente</button>
+      <button class="btn bac bfw" onclick="guardarSimple()"><i class="ti ti-device-floppy"></i> Guardar paciente</button>
     </div>
   </div>
 </div>
@@ -2867,6 +2867,29 @@ document.getElementById('mCita').addEventListener('transitionend',()=>{
   if(window._citPacPre){document.getElementById('citPac').value=window._citPacPre;window._citPacPre='';}
   if(window._citWAPre){document.getElementById('citWA').value=window._citWAPre;window._citWAPre='';}
 });
+</script>
+
+<script>
+async function guardarSimple(){
+  var n=(document.getElementById('pn1')||{}).value;
+  var a=(document.getElementById('pa1')||{}).value;
+  n=(n||'').trim();a=(a||'').trim();
+  if(!n||!a){
+    alert('Escribe nombre y apellido en paso General.\nNombre: "'+n+'"\nApellido: "'+a+'"');
+    return;
+  }
+  try{
+    var ref=await window.db.collection('pacientes').add({
+      nombre:n+' '+a,nombre1:n,apellido1:a,
+      creadoEn:new Date().toISOString()
+    });
+    alert('GUARDADO OK: '+n+' '+a+'\nID: '+ref.id);
+    document.getElementById('pn1').value='';
+    document.getElementById('pa1').value='';
+    document.getElementById('mPac').classList.remove('op');
+  }catch(e){alert('ERROR: '+e.message);}
+}
+window.guardarSimple=guardarSimple;
 </script>
 
 <button onclick="testFirebase()" style="position:fixed;bottom:10px;right:10px;z-index:9999;background:#E24B4A;color:white;border:none;padding:10px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;">🔥 Test Firebase</button>
