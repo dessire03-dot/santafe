@@ -1222,10 +1222,13 @@ let curPacId=null;
 window.curPacId=null;
 // Wrapper para exponer curPacId al script global
 const _setCurPac=id=>{curPacId=id;window.curPacId=id;};
-onSnapshot(query(collection(db,'pacientes'),orderBy('nombre')),snap=>{
-  allPacs=snap.docs.map(d=>({id:d.id,...d.data()}));
+onSnapshot(collection(db,'pacientes'),snap=>{
+  allPacs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
   renderPacs(allPacs);
   document.getElementById('dPac').textContent=allPacs.length.toLocaleString();
+},err=>{
+  console.error('Error pacientes:',err);
+  document.getElementById('pacList').innerHTML='<div class="empty"><i class="ti ti-alert-circle"></i>Error: '+err.message+'</div>';
 });
 
 function renderPacs(list){
@@ -1660,8 +1663,9 @@ window.saveEspera=async()=>{
     cm('mEspera');T('✅ Paciente agregado a sala');
   }catch(e){T('❌ '+e.message);}
 };
-onSnapshot(query(collection(db,'espera'),where('fecha','==',new Date().toISOString().split('T')[0]),orderBy('ts')),snap=>{
-  esperaItems=snap.docs.map(d=>({id:d.id,...d.data()}));
+const _hoyFecha=new Date().toISOString().split('T')[0];
+onSnapshot(collection(db,'espera'),snap=>{
+  esperaItems=snap.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.fecha===_hoyFecha).sort((a,b)=>((a.ts&&a.ts.toMillis?a.ts.toMillis():0)-(b.ts&&b.ts.toMillis?b.ts.toMillis():0)));
   const enEsp=esperaItems.filter(e=>e.estado==='espera').length;
   const atend=esperaItems.filter(e=>e.estado==='atendido').length;
   document.getElementById('esEspCount').textContent=enEsp;
@@ -1689,13 +1693,13 @@ window.atenderPac=async id=>{await updateDoc(doc(db,'espera',id),{estado:'atendi
 
 // ══ CITAS ══
 let allCitas=[];
-onSnapshot(query(collection(db,'citas'),orderBy('fecha')),snap=>{
-  allCitas=snap.docs.map(d=>({id:d.id,...d.data()}));
+onSnapshot(collection(db,'citas'),snap=>{
+  allCitas=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
   renderCitas(allCitas);
   const hoy=new Date();const mes=hoy.getMonth(),anio=hoy.getFullYear();
   const cMes=allCitas.filter(c=>{const f=new Date(c.fecha||'');return f.getMonth()===mes&&f.getFullYear()===anio;}).length;
   document.getElementById('dCitas').textContent=cMes;
-});
+},err=>{console.error('citas:',err);});
 function renderCitas(lista){
   const el=document.getElementById('citList');
   if(!lista.length){el.innerHTML='<div class="empty"><i class="ti ti-calendar"></i>Sin citas</div>';return;}
@@ -1803,15 +1807,15 @@ window.saveCot=async()=>{
     T('✅ Cotización guardada');initCot();
   }catch(e){T('❌ '+e.message);}
 };
-onSnapshot(query(collection(db,'cotizaciones'),orderBy('creadoEn','desc')),snap=>{
-  const lista=snap.docs.map(d=>({id:d.id,...d.data()}));
+onSnapshot(collection(db,'cotizaciones'),snap=>{
+  const lista=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.creadoEn&&b.creadoEn.toMillis?b.creadoEn.toMillis():0)-(a.creadoEn&&a.creadoEn.toMillis?a.creadoEn.toMillis():0)));
   const el=document.getElementById('cotList');
   if(!lista.length){el.innerHTML='<div class="empty"><i class="ti ti-file-invoice"></i>Sin cotizaciones</div>';return;}
   el.innerHTML=lista.slice(0,10).map(c=>`
     <div class="li"><div class="ia" style="background:var(--bbg);color:var(--btx);font-size:10px;">${(c.paciente||'?').substring(0,2).toUpperCase()}</div>
     <div style="flex:1;"><div class="it">${c.paciente}</div><div class="is">${c.numero} · L.${(c.total||0).toFixed(2)} · ${fmtFecha(c.fecha)}</div></div>
     ${c.wa?`<button class="btn bwa" style="font-size:10px;padding:4px 8px;" onclick="reenvCot('${c.id}')"><i class="ti ti-brand-whatsapp"></i></button>`:''}</div>`).join('');
-});
+},err=>{console.error('cotizaciones:',err);});
 window.reenvCot=async id=>{
   const s=await getDoc(doc(db,'cotizaciones',id));if(!s.exists())return;
   const c=s.data();const list=(c.items||[]).map(i=>`• ${i.name} — L.${i.price.toFixed(2)}`).join('\n');
@@ -1860,8 +1864,8 @@ window.saveFact=async()=>{
     }
   }catch(e){T('❌ '+e.message);}
 };
-onSnapshot(query(collection(db,'facturas'),orderBy('creadoEn','desc')),snap=>{
-  const lista=snap.docs.map(d=>({id:d.id,...d.data()}));
+onSnapshot(collection(db,'facturas'),snap=>{
+  const lista=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.creadoEn&&b.creadoEn.toMillis?b.creadoEn.toMillis():0)-(a.creadoEn&&a.creadoEn.toMillis?a.creadoEn.toMillis():0)));
   const hoy=new Date(),mes=hoy.getMonth(),anio=hoy.getFullYear();
   let tMes=0,tPend=0;
   lista.forEach(f=>{const ff=f.fecha?new Date(f.fecha):null;if(ff&&ff.getMonth()===mes&&ff.getFullYear()===anio)tMes+=f.total||0;if(f.estado==='Pendiente')tPend+=f.total||0;});
@@ -2411,8 +2415,8 @@ function renderFItems(){
 let curHospId=null;
 let consItems=[];
 
-onSnapshot(query(collection(db,'hospitalizacion'),where('alta','==',false),orderBy('ingreso','desc')),snap=>{
-  const lista=snap.docs.map(d=>({id:d.id,...d.data()}));
+onSnapshot(collection(db,'hospitalizacion'),snap=>{
+  const lista=snap.docs.map(d=>({id:d.id,...d.data()})).filter(h=>h.alta===false).sort((a,b)=>(b.ingreso||'').localeCompare(a.ingreso||''));
   document.getElementById('hospActivos').textContent=lista.length;
   const el=document.getElementById('hospList');
   if(!lista.length){el.innerHTML='<div class="empty"><i class="ti ti-bed"></i>Sin pacientes hospitalizados</div>';return;}
