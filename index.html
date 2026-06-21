@@ -2892,6 +2892,7 @@ async function guardarSimple(){
     document.getElementById('pn1').value='';
     document.getElementById('pa1').value='';
     document.getElementById('mPac').classList.remove('op');
+cargarPacientes();
   }catch(e){alert('ERROR: '+e.message);}
 }
 window.guardarSimple=guardarSimple;
