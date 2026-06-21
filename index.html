@@ -1222,14 +1222,19 @@ let curPacId=null;
 window.curPacId=null;
 // Wrapper para exponer curPacId al script global
 const _setCurPac=id=>{curPacId=id;window.curPacId=id;};
-onSnapshot(collection(db,'pacientes'),snap=>{
-  allPacs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
-  renderPacs(allPacs);
-  document.getElementById('dPac').textContent=allPacs.length.toLocaleString();
-},err=>{
-  console.error('Error pacientes:',err);
-  document.getElementById('pacList').innerHTML='<div class="empty"><i class="ti ti-alert-circle"></i>Error: '+err.message+'</div>';
-});
+async function cargarPacientes(){
+  try{
+    const snap=await window.db.collection('pacientes').get();
+    allPacs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''));
+    renderPacs(allPacs);
+    document.getElementById('dPac').textContent=allPacs.length.toLocaleString();
+  }catch(e){
+    console.error('Error:',e);
+    document.getElementById('pacList').innerHTML='<div class="empty">Error: '+e.message+'</div>';
+  }
+}
+cargarPacientes();
+setInterval(cargarPacientes,10000);
 
 function renderPacs(list){
   const el=document.getElementById('pacList');
